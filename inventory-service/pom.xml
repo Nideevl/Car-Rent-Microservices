@@ -8,7 +8,7 @@
 		<version>3.0.6</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.code</groupId>
+	<groupId>com.deepak</groupId>
 	<artifactId>inventory-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>inventory-service</name>
@@ -27,7 +27,7 @@
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.code</groupId>
+			<groupId>com.deepak</groupId>
 			<artifactId>common-package</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>

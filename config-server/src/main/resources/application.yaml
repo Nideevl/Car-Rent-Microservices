@@ -6,6 +6,6 @@ spring:
       server:
         default-label: server-config
         git:
-          uri: https://github.com/andresrodriguez55/rent-a-car-microservices
+          uri: https://github.com/Nideevl/Car-Rent-Microservices
 server:
   port: 8888
