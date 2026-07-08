@@ -1,11 +1,13 @@
 spring:
   application:
-    name: config-server
+    name: config-server # spring.application.name
   cloud:
     config:
       server:
-        default-label: services-configs
+        default-label: services-configs # spring.config.server.default-label
         git:
-          uri: https://github.com/Nideevl/Car-Rent-Microservices
+          uri: https://github.com/Nideevl/Car-Rent-Microservices # spring.config.server.default-label.git.url
+
+# Tells Tomcat to listen for network traffic on port 8888
 server:
-  port: 8888
+  port: 8888 # server.port

@@ -1,8 +1,20 @@
 spring:
   application:
-    name: api-gateway
+    name: api-gateway # spring.application.name
+# Spring Cloud is a collection of tools built on top of Spring Boot for building distributed (microservice) systems.
   cloud:
     config:
-      profile: prod
+      profile: prod # spring.cloud.config.profile
   config:
-    import: configserver:http://localhost:8888
+    import: configserver:http://localhost:8888 # spring.config.import
+# configserver tells:
+#       "Do not treat this URL as a simple file download. This address belongs to a smart Spring Cloud Config Server application."
+# Instead of calling http://localhost:8888, the library extracts:
+#   1. api-gateway (from spring.application.name)
+#   2. prod (from spring.cloud.config.profile)
+# It automatically glues them onto the end of the address you provided to build the proper URL path behind the scenes:
+# GET http://localhost:8888/api-gateway/prod
+
+
+
+
