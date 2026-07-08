@@ -1,34 +1,71 @@
 spring:
   application:
+    # Logical name of this application. This is the name registered in Eureka
+    # and used by other services to discover this application.
     name: api-gateway
+
   cloud:
     gateway:
       discovery:
         locator:
+          # Automatically create routes for every service registered in Eureka.
+          # Without this, routes have to be configured manually.
           enabled: true
+
+          # Eureka usually stores service names in uppercase (e.g. INVENTORY-SERVICE).
+          # Convert them to lowercase so URLs become /inventory-service/**.
           lower-case-service-id: true
+
 eureka:
   client:
+    # Download the registry (list of all registered services) from Eureka
+    # and keep a local cache. Required if this application needs to discover
+    # and call other services.
     fetch-registry: true
+
+    # Register this application itself with the Eureka Server so that
+    # other services can discover and communicate with it.
     register-with-eureka: true
+
     service-url:
+      # Address of the Eureka Server.
+      # The Eureka Server application is running on port 8761 and exposes
+      # its registration API under the /eureka path.
       defaultZone: http://localhost:8761/eureka
+
   instance:
     metadata-map:
+      # Custom metadata sent along with this instance registration.
+      # Other services can read this metadata if needed.
       serviceId: inventory-service
+
+    # Unique identifier for this running instance.
+    # Useful when multiple instances of the same application are running.
     instance-id: ${spring.application.name}:${random.value}
+
+    # Register this machine's IP address instead of its hostname.
+    # Helpful in Docker, cloud, and multi-machine environments.
     prefer-ip-address: true
+
 server:
+  # HTTP port on which this Spring Boot application listens.
   port: 9010
-  
+
 management:
   endpoints:
     web:
       exposure:
+        # Expose all Actuator endpoints over HTTP.
+        # Useful during development; in production, expose only the required ones.
         include: "*"
+
   tracing:
     sampling:
+      # Sample 100% of requests for distributed tracing.
+      # Lower this value in production to reduce tracing overhead.
       probability: 1.0
+
   zipkin:
     tracing:
+      # URL of the Zipkin server where trace data is sent.
       endpoint: http://localhost:9411/api/v2/spans
