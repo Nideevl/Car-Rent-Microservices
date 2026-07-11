@@ -1589,7 +1589,3 @@ This project demonstrates enterprise-grade microservices architecture with empha
 - Comprehensive observability
 
 ---
-
-## License
-
-[Add your license here]
