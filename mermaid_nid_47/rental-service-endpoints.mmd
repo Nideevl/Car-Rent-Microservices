@@ -1,0 +1,127 @@
+graph TB
+    Client["🖥️ Client/User"]
+
+    subgraph "API Gateway"
+        Gateway["🔗 Spring Cloud Gateway<br/>Port: 9010"]
+    end
+
+    subgraph "Rental Service"
+        GetAll["<b>GET /api/rentals</b><br/>Fetch all rentals"]
+        GetById["<b>GET /api/rentals/{id}</b><br/>Fetch specific rental"]
+        Create["<b>POST /api/rentals</b><br/>Create new rental<br/>& process payment"]
+        Update["<b>PUT /api/rentals/{id}</b><br/>Update rental record"]
+        Delete["<b>DELETE /api/rentals/{id}</b><br/>Delete rental record"]
+
+        RentalController["RentalController<br/>Handles 5 endpoints"]
+        RentalSvc["🚗 RentalService<br/>Business Logic<br/>Orchestrates transactions"]
+    end
+
+    subgraph "Database"
+        PostgreSQL["🗄️ PostgreSQL<br/>rental_db<br/>Port: 5432"]
+    end
+
+    subgraph "Service-to-Service Communication"
+        CarClient["CarClient<br/>@FeignClient<br/>@Retry"]
+        CheckAvail["<b>GET /api/cars/check-car-available/{carId}</b><br/>Verify car availability"]
+        GetCarInv["<b>GET /api/cars/get-car-for-invoice/{carId}</b><br/>Fetch car details for invoice"]
+    end
+
+    subgraph "Inventory Service"
+        InventorySvc["📦 Inventory Service<br/>Port: 8082<br/>Resilience4j Retry"]
+    end
+
+    subgraph "Payment Communication"
+        PaymentClient["PaymentClient<br/>@FeignClient"]
+        ProcessPayment["<b>POST /api/payments/process-rental-payment</b><br/>Process payment"]
+    end
+
+    subgraph "Payment Service"
+        PaymentSvc["💳 Payment Service<br/>Port: 8084"]
+    end
+
+    subgraph "Event Bus"
+        Kafka["📨 Kafka<br/>Event Streaming<br/>Port: 9092"]
+    end
+
+    subgraph "Event Consumers"
+        InvoiceSvc["📄 Invoice Service<br/>Creates invoices"]
+        InventoryEventSvc["📦 Inventory Service<br/>Updates car availability"]
+    end
+
+    subgraph "Infrastructure"
+        Keycloak["🔐 Keycloak<br/>Authentication<br/>Port: 8080"]
+        Zipkin["🔍 Zipkin<br/>Distributed Tracing<br/>Port: 9411"]
+        Prometheus["📊 Prometheus<br/>Metrics<br/>Port: 9090"]
+    end
+
+%% Client to Gateway
+    Client -->|HTTP Request| Gateway
+
+%% Gateway to Controller
+    Gateway -->|Route| RentalController
+
+%% Controller to Endpoints
+    RentalController -->|1. GET| GetAll
+    RentalController -->|2. GET| GetById
+    RentalController -->|3. POST| Create
+    RentalController -->|4. PUT| Update
+    RentalController -->|5. DELETE| Delete
+
+%% Endpoints to Service
+    GetAll -->|Process| RentalSvc
+    GetById -->|Process| RentalSvc
+    Create -->|Process| RentalSvc
+    Update -->|Process| RentalSvc
+    Delete -->|Process| RentalSvc
+
+%% Service to Database
+    RentalSvc -->|CRUD Operations| PostgreSQL
+
+%% Feign Client - Inventory Service
+    RentalSvc -->|REST/Feign<br/>Retry Pattern| CarClient
+    CarClient -->|Check availability| CheckAvail
+    CheckAvail -->|GET call| InventorySvc
+    CarClient -->|Get car details| GetCarInv
+    GetCarInv -->|GET call| InventorySvc
+
+%% Feign Client - Payment Service
+    RentalSvc -->|REST/Feign| PaymentClient
+    PaymentClient -->|Process payment| ProcessPayment
+    ProcessPayment -->|POST call| PaymentSvc
+
+%% Kafka Events Publishing
+    RentalSvc -->|Publish Events<br/>rental_created<br/>rental_completed<br/>rental_invoice_created| Kafka
+
+%% Event Consumers
+    Kafka -->|Consume rental events| InvoiceSvc
+    Kafka -->|Consume rental events| InventoryEventSvc
+
+%% Infrastructure Integrations
+    RentalController -->|OAuth2/JWT| Keycloak
+    RentalSvc -->|Send Traces| Zipkin
+    RentalSvc -->|Expose Metrics| Prometheus
+
+%% Styling
+    style Gateway fill:#FF6B6B,stroke:#C92A2A,color:#fff
+    style RentalController fill:#FF6B6B,stroke:#C92A2A,color:#fff
+    style RentalSvc fill:#FF6B6B,stroke:#C92A2A,color:#fff
+    style GetAll fill:#90EE90,stroke:#52B788,color:#000
+    style GetById fill:#90EE90,stroke:#52B788,color:#000
+    style Create fill:#87CEEB,stroke:#4A90E2,color:#000
+    style Update fill:#F0E68C,stroke:#F39C12,color:#000
+    style Delete fill:#FFB6C1,stroke:#E74C3C,color:#000
+    style PostgreSQL fill:#336791,stroke:#0E4C92,color:#fff
+    style CarClient fill:#FF6B00,stroke:#CC5500,color:#fff
+    style CheckAvail fill:#FFA500,stroke:#D97706,color:#000
+    style GetCarInv fill:#FFA500,stroke:#D97706,color:#000
+    style InventorySvc fill:#27AE60,stroke:#1E8449,color:#fff
+    style PaymentClient fill:#9B59B6,stroke:#7D3C98,color:#fff
+    style ProcessPayment fill:#DDA0DD,stroke:#9B59B6,color:#000
+    style PaymentSvc fill:#8E44AD,stroke:#6C3483,color:#fff
+    style Kafka fill:#FFE66D,stroke:#F1C40F,color:#000
+    style InvoiceSvc fill:#4A90E2,stroke:#3B73C4,color:#fff
+    style InventoryEventSvc fill:#27AE60,stroke:#1E8449,color:#fff
+    style Keycloak fill:#95E1D3,stroke:#16A085,color:#000
+    style Zipkin fill:#F38181,stroke:#E74C3C,color:#fff
+    style Prometheus fill:#AA96DA,stroke:#8E44AD,color:#fff
+    style Client fill:#2C3E50,stroke:#1A252F,color:#fff

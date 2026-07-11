@@ -1,0 +1,70 @@
+graph TB
+    Client["🖥️ Client/User"]
+
+    subgraph "API Gateway"
+        Gateway["🔗 Spring Cloud Gateway<br/>Port: 9010"]
+    end
+
+    subgraph "Invoice Service"
+        GetAll["<b>GET /api/invoices</b><br/>Fetch all invoices"]
+
+        InvoiceController["InvoiceController<br/>Handles 1 endpoint"]
+        InvoiceSvc["📄 InvoiceService<br/>Business Logic"]
+    end
+
+    subgraph "Database"
+        MongoDB["🗄️ MongoDB<br/>invoice_db<br/>Port: 27018"]
+    end
+
+    subgraph "Event Bus"
+        Kafka["📨 Kafka<br/>Event Streaming<br/>Port: 9092"]
+    end
+
+    subgraph "Event Producers"
+        RentalSvc["🚗 Rental Service<br/>Publishes invoice events"]
+    end
+
+    subgraph "Infrastructure"
+        Keycloak["🔐 Keycloak<br/>Authentication<br/>Port: 8080"]
+        Zipkin["🔍 Zipkin<br/>Distributed Tracing<br/>Port: 9411"]
+        Prometheus["📊 Prometheus<br/>Metrics<br/>Port: 9090"]
+    end
+
+%% Client to Gateway
+    Client -->|HTTP Request| Gateway
+
+%% Gateway to Controller
+    Gateway -->|Route| InvoiceController
+
+%% Controller to Endpoint
+    InvoiceController -->|1. GET| GetAll
+
+%% Endpoint to Service
+    GetAll -->|Process| InvoiceSvc
+
+%% Service to Database
+    InvoiceSvc -->|Read Operations| MongoDB
+
+%% Kafka Event Consumption
+    Kafka -->|Consume Events<br/>rental_invoice_created| InvoiceSvc
+
+%% Event Source
+    RentalSvc -->|Publish Events<br/>when rental completes| Kafka
+
+%% Infrastructure Integrations
+    InvoiceController -->|OAuth2/JWT| Keycloak
+    InvoiceSvc -->|Send Traces| Zipkin
+    InvoiceSvc -->|Expose Metrics| Prometheus
+
+%% Styling
+    style Gateway fill:#FF6B6B,stroke:#C92A2A,color:#fff
+    style InvoiceController fill:#4A90E2,stroke:#3B73C4,color:#fff
+    style InvoiceSvc fill:#4A90E2,stroke:#3B73C4,color:#fff
+    style GetAll fill:#90EE90,stroke:#52B788,color:#000
+    style MongoDB fill:#13AA52,stroke:#0E6D2F,color:#fff
+    style Kafka fill:#FFE66D,stroke:#F1C40F,color:#000
+    style RentalSvc fill:#FF6B6B,stroke:#C92A2A,color:#fff
+    style Keycloak fill:#95E1D3,stroke:#16A085,color:#000
+    style Zipkin fill:#F38181,stroke:#E74C3C,color:#fff
+    style Prometheus fill:#AA96DA,stroke:#8E44AD,color:#fff
+    style Client fill:#2C3E50,stroke:#1A252F,color:#fff

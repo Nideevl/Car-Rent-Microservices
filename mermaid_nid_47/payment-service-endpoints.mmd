@@ -1,0 +1,88 @@
+graph TB
+    Client["🖥️ Client/User"]
+
+    subgraph "API Gateway"
+        Gateway["🔗 Spring Cloud Gateway<br/>Port: 9010"]
+    end
+
+    subgraph "Payment Service"
+        GetAll["<b>GET /api/payments</b><br/>Fetch all payments"]
+        GetById["<b>GET /api/payments/{id}</b><br/>Fetch specific payment"]
+        Create["<b>POST /api/payments</b><br/>Create payment record"]
+        Update["<b>PUT /api/payments/{id}</b><br/>Update payment record"]
+        Delete["<b>DELETE /api/payments/{id}</b><br/>Delete payment record"]
+        ProcessPayment["<b>POST /api/payments/process-rental-payment</b><br/>Process rental payment<br/>Verify bank account balance"]
+
+        PaymentController["PaymentController<br/>Handles 6 endpoints"]
+        PaymentSvc["💳 PaymentService<br/>Business Logic<br/>Payment Processing"]
+    end
+
+    subgraph "Database"
+        PostgreSQL["🗄️ PostgreSQL<br/>payment_db<br/>Port: 5432"]
+    end
+
+    subgraph "Service-to-Service Communication"
+        RentalClient["Called by<br/>Rental Service<br/>@FeignClient<br/>POST /process-rental-payment"]
+    end
+
+    subgraph "Rental Service"
+        RentalSvc["🚗 Rental Service<br/>Port: 8081<br/>Initiates payments"]
+    end
+
+    subgraph "Infrastructure"
+        Keycloak["🔐 Keycloak<br/>Authentication<br/>Port: 8080"]
+        Zipkin["🔍 Zipkin<br/>Distributed Tracing<br/>Port: 9411"]
+        Prometheus["📊 Prometheus<br/>Metrics<br/>Port: 9090"]
+    end
+
+%% Client to Gateway
+    Client -->|HTTP Request| Gateway
+
+%% Gateway to Controller
+    Gateway -->|Route| PaymentController
+
+%% Controller to Endpoints
+    PaymentController -->|1. GET| GetAll
+    PaymentController -->|2. GET| GetById
+    PaymentController -->|3. POST| Create
+    PaymentController -->|4. PUT| Update
+    PaymentController -->|5. DELETE| Delete
+    PaymentController -->|6. POST| ProcessPayment
+
+%% Endpoints to Service
+    GetAll -->|Process| PaymentSvc
+    GetById -->|Process| PaymentSvc
+    Create -->|Process| PaymentSvc
+    Update -->|Process| PaymentSvc
+    Delete -->|Process| PaymentSvc
+    ProcessPayment -->|Process<br/>Verify balance<br/>Deduct amount| PaymentSvc
+
+%% Service to Database
+    PaymentSvc -->|CRUD Operations<br/>Record transactions| PostgreSQL
+
+%% Feign Client Call
+    RentalClient -->|Calls during checkout| ProcessPayment
+    RentalSvc -->|REST/Feign| RentalClient
+
+%% Infrastructure Integrations
+    PaymentController -->|OAuth2/JWT| Keycloak
+    PaymentSvc -->|Send Traces| Zipkin
+    PaymentSvc -->|Expose Metrics| Prometheus
+
+%% Styling
+    style Gateway fill:#FF6B6B,stroke:#C92A2A,color:#fff
+    style PaymentController fill:#8E44AD,stroke:#6C3483,color:#fff
+    style PaymentSvc fill:#8E44AD,stroke:#6C3483,color:#fff
+    style GetAll fill:#90EE90,stroke:#52B788,color:#000
+    style GetById fill:#90EE90,stroke:#52B788,color:#000
+    style Create fill:#87CEEB,stroke:#4A90E2,color:#000
+    style Update fill:#F0E68C,stroke:#F39C12,color:#000
+    style Delete fill:#FFB6C1,stroke:#E74C3C,color:#000
+    style ProcessPayment fill:#DDA0DD,stroke:#9B59B6,color:#000
+    style PostgreSQL fill:#336791,stroke:#0E4C92,color:#fff
+    style RentalClient fill:#FF6B6B,stroke:#C92A2A,color:#fff
+    style RentalSvc fill:#FF6B6B,stroke:#C92A2A,color:#fff
+    style Keycloak fill:#95E1D3,stroke:#16A085,color:#000
+    style Zipkin fill:#F38181,stroke:#E74C3C,color:#fff
+    style Prometheus fill:#AA96DA,stroke:#8E44AD,color:#fff
+    style Client fill:#2C3E50,stroke:#1A252F,color:#fff

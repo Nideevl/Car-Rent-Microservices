@@ -1,0 +1,86 @@
+graph TB
+    Client["🖥️ Client/Admin"]
+
+    subgraph "API Gateway"
+        Gateway["🔗 Spring Cloud Gateway<br/>Port: 9010"]
+    end
+
+    subgraph "Inventory Service - Models"
+        GetAll["<b>GET /api/models</b><br/>Fetch all models"]
+        GetById["<b>GET /api/models/{id}</b><br/>Fetch specific model"]
+        Create["<b>POST /api/models</b><br/>Create new model"]
+        Update["<b>PUT /api/models/{id}</b><br/>Update model"]
+        Delete["<b>DELETE /api/models/{id}</b><br/>Delete model"]
+
+        ModelController["ModelController<br/>Handles 5 endpoints"]
+        ModelSvc["📦 ModelService<br/>Business Logic"]
+    end
+
+    subgraph "Database"
+        PostgreSQL["🗄️ PostgreSQL<br/>inventory_db<br/>Port: 5432"]
+    end
+
+    subgraph "Event Bus"
+        Kafka["📨 Kafka<br/>Event Streaming<br/>Port: 9092"]
+    end
+
+    subgraph "Event Consumers"
+        FilterSvc["🔍 Filter Service<br/>Updates model data"]
+    end
+
+    subgraph "Infrastructure"
+        Keycloak["🔐 Keycloak<br/>Authentication<br/>Port: 8080"]
+        Zipkin["🔍 Zipkin<br/>Distributed Tracing<br/>Port: 9411"]
+        Prometheus["📊 Prometheus<br/>Metrics<br/>Port: 9090"]
+    end
+
+%% Client to Gateway
+    Client -->|HTTP Request| Gateway
+
+%% Gateway to Controller
+    Gateway -->|Route| ModelController
+
+%% Controller to Endpoints
+    ModelController -->|1. GET| GetAll
+    ModelController -->|2. GET| GetById
+    ModelController -->|3. POST| Create
+    ModelController -->|4. PUT| Update
+    ModelController -->|5. DELETE| Delete
+
+%% Endpoints to Service
+    GetAll -->|Process| ModelSvc
+    GetById -->|Process| ModelSvc
+    Create -->|Process| ModelSvc
+    Update -->|Process| ModelSvc
+    Delete -->|Process| ModelSvc
+
+%% Service to Database
+    ModelSvc -->|CRUD Operations| PostgreSQL
+
+%% Kafka Events Publishing
+    ModelSvc -->|Publish Events<br/>model_created<br/>model_updated<br/>model_deleted| Kafka
+
+%% Event Consumers
+    Kafka -->|Consume model events| FilterSvc
+
+%% Infrastructure Integrations
+    ModelController -->|OAuth2/JWT| Keycloak
+    ModelSvc -->|Send Traces| Zipkin
+    ModelSvc -->|Expose Metrics| Prometheus
+
+%% Styling
+    style Gateway fill:#FF6B6B,stroke:#C92A2A,color:#fff
+    style ModelController fill:#3498DB,stroke:#2980B9,color:#fff
+    style ModelSvc fill:#3498DB,stroke:#2980B9,color:#fff
+    style GetAll fill:#90EE90,stroke:#52B788,color:#000
+    style GetById fill:#90EE90,stroke:#52B788,color:#000
+    style Create fill:#87CEEB,stroke:#4A90E2,color:#000
+    style Update fill:#F0E68C,stroke:#F39C12,color:#000
+    style Delete fill:#FFB6C1,stroke:#E74C3C,color:#000
+    style PostgreSQL fill:#336791,stroke:#0E4C92,color:#fff
+    style Kafka fill:#FFE66D,stroke:#F1C40F,color:#000
+    style FilterSvc fill:#4A90E2,stroke:#3B73C4,color:#fff
+    style Keycloak fill:#95E1D3,stroke:#16A085,color:#000
+    style Zipkin fill:#F38181,stroke:#E74C3C,color:#fff
+    style Prometheus fill:#AA96DA,stroke:#8E44AD,color:#fff
+    style Client fill:#2C3E50,stroke:#1A252F,color:#fff

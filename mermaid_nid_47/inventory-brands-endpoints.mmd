@@ -1,0 +1,86 @@
+graph TB
+    Client["🖥️ Client/Admin"]
+
+    subgraph "API Gateway"
+        Gateway["🔗 Spring Cloud Gateway<br/>Port: 9010"]
+    end
+
+    subgraph "Inventory Service - Brands"
+        GetAll["<b>GET /api/brands</b><br/>Fetch all brands"]
+        GetById["<b>GET /api/brands/{id}</b><br/>Fetch specific brand"]
+        Create["<b>POST /api/brands</b><br/>Create new brand"]
+        Update["<b>PUT /api/brands/{id}</b><br/>Update brand"]
+        Delete["<b>DELETE /api/brands/{id}</b><br/>Delete brand"]
+
+        BrandController["BrandController<br/>Handles 5 endpoints"]
+        BrandSvc["📦 BrandService<br/>Business Logic"]
+    end
+
+    subgraph "Database"
+        PostgreSQL["🗄️ PostgreSQL<br/>inventory_db<br/>Port: 5432"]
+    end
+
+    subgraph "Event Bus"
+        Kafka["📨 Kafka<br/>Event Streaming<br/>Port: 9092"]
+    end
+
+    subgraph "Event Consumers"
+        FilterSvc["🔍 Filter Service<br/>Updates brand data"]
+    end
+
+    subgraph "Infrastructure"
+        Keycloak["🔐 Keycloak<br/>Authentication<br/>Port: 8080"]
+        Zipkin["🔍 Zipkin<br/>Distributed Tracing<br/>Port: 9411"]
+        Prometheus["📊 Prometheus<br/>Metrics<br/>Port: 9090"]
+    end
+
+%% Client to Gateway
+    Client -->|HTTP Request| Gateway
+
+%% Gateway to Controller
+    Gateway -->|Route| BrandController
+
+%% Controller to Endpoints
+    BrandController -->|1. GET| GetAll
+    BrandController -->|2. GET| GetById
+    BrandController -->|3. POST| Create
+    BrandController -->|4. PUT| Update
+    BrandController -->|5. DELETE| Delete
+
+%% Endpoints to Service
+    GetAll -->|Process| BrandSvc
+    GetById -->|Process| BrandSvc
+    Create -->|Process| BrandSvc
+    Update -->|Process| BrandSvc
+    Delete -->|Process| BrandSvc
+
+%% Service to Database
+    BrandSvc -->|CRUD Operations| PostgreSQL
+
+%% Kafka Events Publishing
+    BrandSvc -->|Publish Events<br/>brand_created<br/>brand_updated<br/>brand_deleted| Kafka
+
+%% Event Consumers
+    Kafka -->|Consume brand events| FilterSvc
+
+%% Infrastructure Integrations
+    BrandController -->|OAuth2/JWT| Keycloak
+    BrandSvc -->|Send Traces| Zipkin
+    BrandSvc -->|Expose Metrics| Prometheus
+
+%% Styling
+    style Gateway fill:#FF6B6B,stroke:#C92A2A,color:#fff
+    style BrandController fill:#27AE60,stroke:#1E8449,color:#fff
+    style BrandSvc fill:#27AE60,stroke:#1E8449,color:#fff
+    style GetAll fill:#90EE90,stroke:#52B788,color:#000
+    style GetById fill:#90EE90,stroke:#52B788,color:#000
+    style Create fill:#87CEEB,stroke:#4A90E2,color:#000
+    style Update fill:#F0E68C,stroke:#F39C12,color:#000
+    style Delete fill:#FFB6C1,stroke:#E74C3C,color:#000
+    style PostgreSQL fill:#336791,stroke:#0E4C92,color:#fff
+    style Kafka fill:#FFE66D,stroke:#F1C40F,color:#000
+    style FilterSvc fill:#4A90E2,stroke:#3B73C4,color:#fff
+    style Keycloak fill:#95E1D3,stroke:#16A085,color:#000
+    style Zipkin fill:#F38181,stroke:#E74C3C,color:#fff
+    style Prometheus fill:#AA96DA,stroke:#8E44AD,color:#fff
+    style Client fill:#2C3E50,stroke:#1A252F,color:#fff

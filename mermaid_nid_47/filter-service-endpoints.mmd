@@ -1,0 +1,77 @@
+graph TB
+    Client["🖥️ Client/User"]
+
+    subgraph "API Gateway"
+        Gateway["🔗 Spring Cloud Gateway<br/>Port: 9010"]
+    end
+
+    subgraph "Filter Service"
+        GetAll["<b>GET /api/filters</b><br/>Fetch all cars<br/>with filtering/search"]
+        GetById["<b>GET /api/filters/{id}</b><br/>Fetch specific car<br/>by id"]
+
+        FilterController["FilterController<br/>Handles 2 endpoints"]
+        FilterSvc["🔍 FilterService<br/>Business Logic<br/>Read-Only Cache"]
+    end
+
+    subgraph "Database"
+        MongoDB["🗄️ MongoDB<br/>filter_db<br/>Port: 27017"]
+    end
+
+    subgraph "Event Bus"
+        Kafka["📨 Kafka<br/>Event Streaming<br/>Port: 9092"]
+    end
+
+    subgraph "Event Producers"
+        InventorySvc["📦 Inventory Service<br/>Publishes car events"]
+        MaintenanceSvc["🔧 Maintenance Service<br/>Publishes maintenance events"]
+    end
+
+    subgraph "Infrastructure"
+        Keycloak["🔐 Keycloak<br/>Authentication<br/>Port: 8080"]
+        Zipkin["🔍 Zipkin<br/>Distributed Tracing<br/>Port: 9411"]
+        Prometheus["📊 Prometheus<br/>Metrics<br/>Port: 9090"]
+    end
+
+%% Client to Gateway
+    Client -->|HTTP Request| Gateway
+
+%% Gateway to Controller
+    Gateway -->|Route| FilterController
+
+%% Controller to Endpoints
+    FilterController -->|1. GET| GetAll
+    FilterController -->|2. GET| GetById
+
+%% Endpoints to Service
+    GetAll -->|Process| FilterSvc
+    GetById -->|Process| FilterSvc
+
+%% Service to Database
+    FilterSvc -->|Read Operations<br/>Only| MongoDB
+
+%% Kafka Event Consumption
+    Kafka -->|Consume Events<br/>car_created<br/>car_updated<br/>car_deleted<br/>car_availability_changed<br/>brand_created/updated/deleted<br/>model_created/updated/deleted<br/>car_maintenance_created<br/>car_returned| FilterSvc
+
+%% Event Sources
+    InventorySvc -->|Publish Events<br/>from Brands, Models, Cars| Kafka
+    MaintenanceSvc -->|Publish Events<br/>Maintenance status changes| Kafka
+
+%% Infrastructure Integrations
+    FilterController -->|OAuth2/JWT| Keycloak
+    FilterSvc -->|Send Traces| Zipkin
+    FilterSvc -->|Expose Metrics| Prometheus
+
+%% Styling
+    style Gateway fill:#FF6B6B,stroke:#C92A2A,color:#fff
+    style FilterController fill:#4A90E2,stroke:#3B73C4,color:#fff
+    style FilterSvc fill:#4A90E2,stroke:#3B73C4,color:#fff
+    style GetAll fill:#90EE90,stroke:#52B788,color:#000
+    style GetById fill:#90EE90,stroke:#52B788,color:#000
+    style MongoDB fill:#13AA52,stroke:#0E6D2F,color:#fff
+    style Kafka fill:#FFE66D,stroke:#F1C40F,color:#000
+    style InventorySvc fill:#27AE60,stroke:#1E8449,color:#fff
+    style MaintenanceSvc fill:#FFB347,stroke:#E67E22,color:#fff
+    style Keycloak fill:#95E1D3,stroke:#16A085,color:#000
+    style Zipkin fill:#F38181,stroke:#E74C3C,color:#fff
+    style Prometheus fill:#AA96DA,stroke:#8E44AD,color:#fff
+    style Client fill:#2C3E50,stroke:#1A252F,color:#fff

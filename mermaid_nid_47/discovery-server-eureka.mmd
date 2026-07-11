@@ -1,0 +1,39 @@
+graph TB
+    subgraph "Eureka Discovery Server"
+        Eureka["📡 Eureka Server<br/>Port: 8761<br/>Service Registry"]
+    end
+
+    subgraph "Service Registration"
+        RentalReg["Rental Service<br/>Port: 8081<br/>Instance: rental-service"]
+        InventoryReg["Inventory Service<br/>Port: 8082<br/>Instance: inventory-service"]
+        FilterReg["Filter Service<br/>Port: 8083<br/>Instance: filter-service"]
+        PaymentReg["Payment Service<br/>Port: 8084<br/>Instance: payment-service"]
+        InvoiceReg["Invoice Service<br/>Port: 8085<br/>Instance: invoice-service"]
+        MaintenanceReg["Maintenance Service<br/>Port: 8086<br/>Instance: maintenance-service"]
+    end
+
+    subgraph "Service Discovery Clients"
+        GatewayClient["API Gateway<br/>Looks up services<br/>Load balancing"]
+    end
+
+%% Services register with Eureka
+    RentalReg -->|Register/Heartbeat| Eureka
+    InventoryReg -->|Register/Heartbeat| Eureka
+    FilterReg -->|Register/Heartbeat| Eureka
+    PaymentReg -->|Register/Heartbeat| Eureka
+    InvoiceReg -->|Register/Heartbeat| Eureka
+    MaintenanceReg -->|Register/Heartbeat| Eureka
+
+%% Gateway queries Eureka
+    GatewayClient -->|Query Service List| Eureka
+    Eureka -->|Return Available Services| GatewayClient
+
+%% Styling
+    style Eureka fill:#4ECDC4,stroke:#45B7D1,color:#000
+    style RentalReg fill:#FF6B6B,stroke:#C92A2A,color:#fff
+    style InventoryReg fill:#27AE60,stroke:#1E8449,color:#fff
+    style FilterReg fill:#4A90E2,stroke:#3B73C4,color:#fff
+    style PaymentReg fill:#8E44AD,stroke:#6C3483,color:#fff
+    style InvoiceReg fill:#4A90E2,stroke:#3B73C4,color:#fff
+    style MaintenanceReg fill:#FFB347,stroke:#E67E22,color:#fff
+    style GatewayClient fill:#FF6B6B,stroke:#C92A2A,color:#fff

@@ -1,0 +1,50 @@
+graph TB
+    Client["🖥️ External Clients"]
+
+    subgraph "API Gateway"
+        Gateway["🔗 Spring Cloud Gateway<br/>Port: 9010"]
+    end
+
+    subgraph "Routing Configuration"
+        Route1["Route: /api/rentals/**<br/>→ Rental Service:8081"]
+        Route2["Route: /api/brands/**<br/>→ Inventory Service:8082"]
+        Route3["Route: /api/models/**<br/>→ Inventory Service:8082"]
+        Route4["Route: /api/cars/**<br/>→ Inventory Service:8082"]
+        Route5["Route: /api/filters/**<br/>→ Filter Service:8083"]
+        Route6["Route: /api/payments/**<br/>→ Payment Service:8084"]
+        Route7["Route: /api/invoices/**<br/>→ Invoice Service:8085"]
+        Route8["Route: /api/maintenances/**<br/>→ Maintenance Service:8086"]
+    end
+
+    subgraph "Service Discovery"
+        Eureka["📡 Eureka<br/>Port: 8761<br/>Service Lookup"]
+    end
+
+%% Client to Gateway
+    Client -->|HTTP Requests| Gateway
+
+%% Gateway discovers services
+    Gateway -->|Service Lookup| Eureka
+
+%% Routes
+    Gateway -->|Apply Route| Route1
+    Gateway -->|Apply Route| Route2
+    Gateway -->|Apply Route| Route3
+    Gateway -->|Apply Route| Route4
+    Gateway -->|Apply Route| Route5
+    Gateway -->|Apply Route| Route6
+    Gateway -->|Apply Route| Route7
+    Gateway -->|Apply Route| Route8
+
+%% Styling
+    style Gateway fill:#FF6B6B,stroke:#C92A2A,color:#fff
+    style Client fill:#2C3E50,stroke:#1A252F,color:#fff
+    style Route1 fill:#90EE90,stroke:#52B788,color:#000
+    style Route2 fill:#90EE90,stroke:#52B788,color:#000
+    style Route3 fill:#90EE90,stroke:#52B788,color:#000
+    style Route4 fill:#90EE90,stroke:#52B788,color:#000
+    style Route5 fill:#90EE90,stroke:#52B788,color:#000
+    style Route6 fill:#90EE90,stroke:#52B788,color:#000
+    style Route7 fill:#90EE90,stroke:#52B788,color:#000
+    style Route8 fill:#90EE90,stroke:#52B788,color:#000
+    style Eureka fill:#4ECDC4,stroke:#45B7D1,color:#000

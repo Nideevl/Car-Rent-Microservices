@@ -1,0 +1,109 @@
+graph TB
+    Client["🖥️ Client/Admin"]
+
+    subgraph "API Gateway"
+        Gateway["🔗 Spring Cloud Gateway<br/>Port: 9010"]
+    end
+
+    subgraph "Maintenance Service"
+        GetAll["<b>GET /api/maintenances</b><br/>Fetch all maintenance records"]
+        GetById["<b>GET /api/maintenances/{id}</b><br/>Fetch specific maintenance record"]
+        Create["<b>POST /api/maintenances</b><br/>Create new maintenance request"]
+        Return["<b>PUT /api/maintenances/return</b><br/>Return car from maintenance"]
+        Update["<b>PUT /api/maintenances/{id}</b><br/>Update maintenance record"]
+        Delete["<b>DELETE /api/maintenances/{id}</b><br/>Delete maintenance record"]
+
+        MaintenanceSvc["🔧 MaintenanceService<br/>Business Logic"]
+        MaintenanceController["MaintenanceController<br/>Handles 6 endpoints"]
+    end
+
+    subgraph "Database"
+        MySQL["🗄️ MySQL<br/>maintenance_db<br/>Port: 3307"]
+    end
+
+    subgraph "Service-to-Service Communication"
+        CarClient["CarClient<br/>@FeignClient"]
+        CheckAvail["<b>GET /api/cars/check-car-available/{carId}</b><br/>Verify car availability"]
+    end
+
+    subgraph "Inventory Service"
+        InventorySvc["📦 Inventory Service<br/>Port: 8082"]
+    end
+
+    subgraph "Event Bus"
+        Kafka["📨 Kafka<br/>Event Streaming<br/>Port: 9092"]
+    end
+
+    subgraph "Dependent Services"
+        FilterSvc["🔍 Filter Service<br/>Updates car status"]
+        InventoryEvent["📦 Inventory Service<br/>Updates car availability"]
+    end
+
+    subgraph "Infrastructure"
+        Keycloak["🔐 Keycloak<br/>Authentication<br/>Port: 8080"]
+        Zipkin["🔍 Zipkin<br/>Distributed Tracing<br/>Port: 9411"]
+        Prometheus["📊 Prometheus<br/>Metrics<br/>Port: 9090"]
+    end
+
+%% Client to Gateway
+    Client -->|HTTP Request| Gateway
+
+%% Gateway to Endpoints
+    Gateway -->|Route| MaintenanceController
+
+%% Endpoints to Service
+    MaintenanceController -->|1. GET| GetAll
+    MaintenanceController -->|2. GET| GetById
+    MaintenanceController -->|3. POST| Create
+    MaintenanceController -->|4. PUT| Return
+    MaintenanceController -->|5. PUT| Update
+    MaintenanceController -->|6. DELETE| Delete
+
+%% Endpoints to Business Logic
+    GetAll -->|Process| MaintenanceSvc
+    GetById -->|Process| MaintenanceSvc
+    Create -->|Process| MaintenanceSvc
+    Return -->|Process| MaintenanceSvc
+    Update -->|Process| MaintenanceSvc
+    Delete -->|Process| MaintenanceSvc
+
+%% Business Logic to Database
+    MaintenanceSvc -->|CRUD Operations| MySQL
+
+%% Feign Client Call (internal REST)
+    MaintenanceSvc -->|REST/Feign| CarClient
+    CarClient -->|Check availability| CheckAvail
+    CheckAvail -->|GET call| InventorySvc
+
+%% Kafka Events
+    MaintenanceSvc -->|Publish Events<br/>car_maintenance_created<br/>car_returned| Kafka
+
+%% Event Consumers
+    Kafka -->|Consume| FilterSvc
+    Kafka -->|Consume| InventoryEvent
+
+%% Infrastructure Integrations
+    MaintenanceController -->|OAuth2/JWT| Keycloak
+    MaintenanceSvc -->|Send Traces| Zipkin
+    MaintenanceSvc -->|Expose Metrics| Prometheus
+
+%% Styling
+    style Gateway fill:#FF6B6B,stroke:#C92A2A,color:#fff
+    style MaintenanceController fill:#FFB347,stroke:#E67E22,color:#fff
+    style MaintenanceSvc fill:#FFB347,stroke:#E67E22,color:#fff
+    style GetAll fill:#90EE90,stroke:#52B788,color:#000
+    style GetById fill:#90EE90,stroke:#52B788,color:#000
+    style Create fill:#87CEEB,stroke:#4A90E2,color:#000
+    style Return fill:#DDA0DD,stroke:#9B59B6,color:#000
+    style Update fill:#F0E68C,stroke:#F39C12,color:#000
+    style Delete fill:#FFB6C1,stroke:#E74C3C,color:#000
+    style MySQL fill:#336791,stroke:#0E4C92,color:#fff
+    style CheckAvail fill:#FFA500,stroke:#D97706,color:#000
+    style CarClient fill:#FF6B00,stroke:#CC5500,color:#fff
+    style Kafka fill:#FFE66D,stroke:#F1C40F,color:#000
+    style FilterSvc fill:#27AE60,stroke:#1E8449,color:#fff
+    style InventoryEvent fill:#F39C12,stroke:#D68910,color:#fff
+    style Keycloak fill:#95E1D3,stroke:#16A085,color:#000
+    style Zipkin fill:#F38181,stroke:#E74C3C,color:#fff
+    style Prometheus fill:#AA96DA,stroke:#8E44AD,color:#fff
+    style Client fill:#2C3E50,stroke:#1A252F,color:#fff

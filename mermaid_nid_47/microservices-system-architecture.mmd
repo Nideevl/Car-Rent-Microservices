@@ -1,0 +1,108 @@
+graph TB
+%% Increased spacing between nodes
+%% Using padding and line breaks for better visual separation
+
+    Client["🖥️ Client Applications"]
+
+    Client -->|"<span style='color:rgb(255, 127, 80);padding:2px 8px;border:none;background:rgb(15,17,26);'>HTTP</span>"| Gateway["🔗 API Gateway<br/>Spring Cloud Gateway<br/>Port: 9010"]
+
+    Gateway -->|"<span style='background:rgb(15,17,26);color:rgb(26,188,156);padding:2px 8px;border:none;'>Service Discovery</span>"| Discovery["📡 Discovery Server<br/>Eureka<br/>Port: 8761"]
+
+    Gateway -->|"<span style='background:rgb(15,17,26);color:rgb(255, 127, 80);padding:2px 8px;border:none;'>Route</span>"| RentalSvc["🚗 Rental Service<br/>Port: 8081<br/>PostgreSQL"]
+    Gateway -->|"<span style='background:rgb(15,17,26);color:rgb(255, 127, 80);padding:2px 8px;border:none;'>Route</span>"| InventorySvc["📦 Inventory Service<br/>Port: 8082<br/>PostgreSQL"]
+    Gateway -->|"<span style='background:rgb(15,17,26);color:rgb(255, 127, 80);padding:2px 8px;border:none;'>Route</span>"| FilterSvc["🔍 Filter Service<br/>Port: 8083<br/>MongoDB"]
+    Gateway -->|"<span style='background:rgb(15,17,26);color:rgb(255, 127, 80);padding:2px 8px;border:none;'>Route</span>"| PaymentSvc["💳 Payment Service<br/>Port: 8084<br/>PostgreSQL"]
+    Gateway -->|"<span style='background:rgb(15,17,26);color:rgb(255, 127, 80);padding:2px 8px;border:none;'>Route</span>"| InvoiceSvc["📄 Invoice Service<br/>Port: 8085<br/>MongoDB"]
+    Gateway -->|"<span style='background:rgb(15,17,26);color:rgb(255, 127, 80);padding:2px 8px;border:none;'>Route</span>"| MaintenanceSvc["🔧 Maintenance Service<br/>Port: 8086<br/>MySQL"]
+
+    RentalSvc -->|"<span style='background:rgb(15,17,26);color: rgb(197,52,255);padding:2px 8px;border:none;'>REST/Feign<br/>Retry Pattern</span>"| InventorySvc
+    RentalSvc -->|"<span style='background:rgb(15,17,26);color: rgb(197,52,255);padding:2px 8px;border:none;'>REST/Feign</span>"| PaymentSvc
+    MaintenanceSvc -->|"<span style='background:rgb(15,17,26);color:rgb(0,255,238);padding:2px 8px;border:none;'>REST/Feign</span>"| InventorySvc
+
+    RentalSvc -->|"<span style='background:rgb(15,17,26);color: rgb(197,52,255);padding:2px 8px;border:none;'>Kafka Event</span>"| Kafka["📨 Kafka<br/>Port: 9092"]
+    MaintenanceSvc -->|"<span style='background:rgb(15,17,26);color:rgb(0,255,238);padding:2px 8px;border:none;'>Kafka Event</span>"| Kafka
+    InventorySvc -->|"<span style='background:rgb(15,17,26);color:rgb(240,204,0);padding:2px 8px;border:none;'>Kafka Event</span>"| Kafka
+
+    Kafka -->|"<span style='background:rgb(15,17,26);color:rgb(225,55,122);padding:2px 8px;border:none;'>Consume</span>"| FilterSvc
+    Kafka -->|"<span style='background:rgb(15,17,26);color:rgb(225,55,122);padding:2px 8px;border:none;'>Consume</span>"| InvoiceSvc
+    Kafka -->|"<span style='background:rgb(15,17,26);color:rgb(225,55,122);padding:2px 8px;border:none;'>Consume</span>"| InventorySvc
+
+    RentalSvc -->|"<span style='background:rgb(15,17,26);color: rgb(197,52,255);padding:2px 8px;border:none;'>Auth/OAuth2</span>"| Keycloak["🔐 Keycloak<br/>Port: 8080"]
+    InventorySvc -->|"<span style='background:rgb(15,17,26);color:rgb(240,204,0);padding:2px 8px;border:none;'>Auth/OAuth2</span>"| Keycloak
+    MaintenanceSvc -->|"<span style='background:rgb(15,17,26);color:rgb(0,255,238);padding:2px 8px;border:none;'>Auth/OAuth2</span>"| Keycloak
+
+    RentalSvc -->|"<span style='background:rgb(15,17,26);color: rgb(197,52,255);padding:2px 8px;border:none;'>Traces</span>"| Zipkin["🔍 Zipkin<br/>Distributed Tracing<br/>Port: 9411"]
+    InventorySvc -->|"<span style='background:rgb(15,17,26);color:rgb(240,204,0);padding:2px 8px;border:none;'>Traces</span>"| Zipkin
+    PaymentSvc -->|"<span style='background:rgb(15,17,26);color:rgb(0,242,60);padding:2px 8px;border:none;'>Traces</span>"| Zipkin
+    MaintenanceSvc -->|"<span style='background:rgb(15,17,26);color:rgb(0,255,238);padding:2px 8px;border:none;'>Traces</span>"| Zipkin
+
+    RentalSvc -->|"<span style='background:rgb(15,17,26);color: rgb(197,52,255);padding:2px 8px;border:none;'>Metrics</span>"| Prometheus["📊 Prometheus<br/>Port: 9090"]
+    InventorySvc -->|"<span style='background:rgb(15,17,26);color:rgb(240, 204, 0);padding:2px 8px;border:none;'>Metrics</span>"| Prometheus
+    PaymentSvc -->|"<span style='background:rgb(15,17,26);color:rgb(0,242,60);padding:2px 8px;border:none;'>Metrics</span>"| Prometheus
+    MaintenanceSvc -->|"<span style='background:rgb(15,17,26);color:rgb(0,255,238);padding:2px 8px;border:none;'>Metrics</span>"| Prometheus
+
+    Prometheus -->|"<span style='background:rgb(15,17,26);color:rgb(26,129,255);padding:2px 8px;border:none;'>Visualize</span>"| Grafana["📈 Grafana<br/>Port: 3000"]
+
+    ConfigServer["⚙️ Config Server<br/>Spring Cloud Config<br/>Port: 8888"]
+    ConfigServer -->|"<span style='background:rgb(15,17,26);color:rgb(48, 172, 255);padding:2px 8px;border:none;'>Config</span>"| RentalSvc
+    ConfigServer -->|"<span style='background:rgb(15,17,26);color:rgb(48, 172, 255);padding:2px 8px;border:none;'>Config</span>"| InventorySvc
+    ConfigServer -->|"<span style='background:rgb(15,17,26);color:rgb(48, 172, 255);padding:2px 8px;border:none;'>Config</span>"| FilterSvc
+    ConfigServer -->|"<span style='background:rgb(15,17,26);color:rgb(48, 172, 255);padding:2px 8px;border:none;'>Config</span>"| PaymentSvc
+    ConfigServer -->|"<span style='background:rgb(15,17,26);color:rgb(48, 172, 255);padding:2px 8px;border:none;'>Config</span>"| InvoiceSvc
+    ConfigServer -->|"<span style='background:rgb(15,17,26);color:rgb(48, 172, 255);padding:2px 8px;border:none;'>Config</span>"| MaintenanceSvc
+
+%% Node Styles with better contrast
+    style Client fill:#FF7F50,color:#FFFFFF,stroke:#1A252F,stroke-width:2px
+    style Gateway fill:#E74C3C,color:#FFFFFF,stroke:#C0392B,stroke-width:2px
+    style Discovery fill:#1ABC9C,color:#FFFFFF,stroke:#16A085,stroke-width:2px
+    style ConfigServer fill:#008AE7,color:#FFFFFF,stroke:#2980B9,stroke-width:2px
+    style Kafka fill:#D50047,color:#FFFFFF,stroke:#8E0038,stroke-width:2px
+    style Keycloak fill:#2ECC71,color:#FFFFFF,stroke:#27AE60,stroke-width:2px
+    style Zipkin fill:#E74C3C,color:#FFFFFF,stroke:#C0392B,stroke-width:2px
+    style Prometheus fill:#3B00EE,color:#FFFFFF,stroke:#24009A,stroke-width:2px
+    style Grafana fill:#D35400,color:#FFFFFF,stroke:#A04000,stroke-width:2px
+
+%% Service Nodes with better contrast
+    style RentalSvc fill:#7C00AD,color:#FFFFFF,stroke:#5A007D,stroke-width:2px
+    style InventorySvc fill:#F0CC00,color:#000000,stroke:#B8860B,stroke-width:2px
+    style FilterSvc fill:#F4D03F,color:#1C2833,stroke:#D4AC0D,stroke-width:2px
+    style PaymentSvc fill:#00D435,color:#FFFFFF,stroke:#008F26,stroke-width:2px
+    style InvoiceSvc fill:#5D6D7E,color:#FFFFFF,stroke:#2E4053,stroke-width:2px
+    style MaintenanceSvc fill:#00FFEE,color:#000000,stroke:#008B8B,stroke-width:2px
+
+%% Arrow styles with matching colors
+    linkStyle 1 stroke:#1ABC9C,stroke-width:3px
+    linkStyle 0 stroke:#E74C3C,stroke-width:3px
+    linkStyle 2 stroke:#E74C3C,stroke-width:3px
+    linkStyle 3 stroke:#E74C3C,stroke-width:3px
+    linkStyle 4 stroke:#E74C3C,stroke-width:3px
+    linkStyle 5 stroke:#E74C3C,stroke-width:3px
+    linkStyle 6 stroke:#E74C3C,stroke-width:3px
+    linkStyle 7 stroke:#E74C3C,stroke-width:3px
+    linkStyle 8 stroke:#7C00AD,stroke-width:3px
+    linkStyle 9 stroke:#7C00AD,stroke-width:3px
+    linkStyle 11 stroke:#7C00AD,stroke-width:3px
+    linkStyle 17 stroke:#7C00AD,stroke-width:3px
+    linkStyle 20 stroke:#7C00AD,stroke-width:3px
+    linkStyle 24 stroke:#7C00AD,stroke-width:3px
+    linkStyle 18 stroke:#F0CC00,stroke-width:3px
+    linkStyle 13 stroke:#F0CC00,stroke-width:3px
+    linkStyle 25 stroke:#F0CC00,stroke-width:3px
+    linkStyle 21 stroke:#F0CC00,stroke-width:3px
+    linkStyle 14 stroke:#D50047,stroke-width:3px
+    linkStyle 15 stroke:#D50047,stroke-width:3px
+    linkStyle 16 stroke:#D50047,stroke-width:3px
+    linkStyle 23 stroke:#00FFEE,stroke-width:3px
+    linkStyle 27 stroke:#00FFEE,stroke-width:3px
+    linkStyle 12 stroke:#00FFEE,stroke-width:3px
+    linkStyle 19 stroke:#00FFEE,stroke-width:3px
+    linkStyle 10 stroke:#00FFEE,stroke-width:3px
+    linkStyle 26 stroke:#00D435,stroke-width:3px
+    linkStyle 22 stroke:#00D435,stroke-width:3px
+    linkStyle 28 stroke:#3498DB,stroke-width:3px
+    linkStyle 29 stroke:#008AE7,stroke-width:3px
+    linkStyle 30 stroke:#008AE7,stroke-width:3px
+    linkStyle 31 stroke:#008AE7,stroke-width:3px
+    linkStyle 32 stroke:#008AE7,stroke-width:3px
+    linkStyle 33 stroke:#008AE7,stroke-width:3px
+    linkStyle 34 stroke:#008AE7,stroke-width:3px

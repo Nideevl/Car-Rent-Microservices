@@ -1,0 +1,38 @@
+graph TB
+    subgraph "Config Server"
+        ConfigServer["⚙️ Spring Cloud Config Server<br/>Port: 8888<br/>Centralized Configuration"]
+    end
+
+    subgraph "Configuration Sources"
+        GitRepo["Git Repository<br/>application-dev.yml<br/>application-prod.yml<br/>application.yml"]
+    end
+
+    subgraph "Config Clients"
+        RentalSvc["🚗 Rental Service<br/>Port: 8081<br/>Fetches config"]
+        InventorySvc["📦 Inventory Service<br/>Port: 8082<br/>Fetches config"]
+        FilterSvc["🔍 Filter Service<br/>Port: 8083<br/>Fetches config"]
+        PaymentSvc["💳 Payment Service<br/>Port: 8084<br/>Fetches config"]
+        InvoiceSvc["📄 Invoice Service<br/>Port: 8085<br/>Fetches config"]
+        MaintenanceSvc["🔧 Maintenance Service<br/>Port: 8086<br/>Fetches config"]
+    end
+
+%% Config Server reads from Git
+    ConfigServer -->|Read Configs| GitRepo
+
+%% Services fetch from Config Server
+    RentalSvc -->|Fetch Config| ConfigServer
+    InventorySvc -->|Fetch Config| ConfigServer
+    FilterSvc -->|Fetch Config| ConfigServer
+    PaymentSvc -->|Fetch Config| ConfigServer
+    InvoiceSvc -->|Fetch Config| ConfigServer
+    MaintenanceSvc -->|Fetch Config| ConfigServer
+
+%% Styling
+    style ConfigServer fill:#45B7D1,stroke:#3498DB,color:#fff
+    style GitRepo fill:#333333,stroke:#000000,color:#fff
+    style RentalSvc fill:#FF6B6B,stroke:#C92A2A,color:#fff
+    style InventorySvc fill:#27AE60,stroke:#1E8449,color:#fff
+    style FilterSvc fill:#4A90E2,stroke:#3B73C4,color:#fff
+    style PaymentSvc fill:#8E44AD,stroke:#6C3483,color:#fff
+    style InvoiceSvc fill:#4A90E2,stroke:#3B73C4,color:#fff
+    style MaintenanceSvc fill:#FFB347,stroke:#E67E22,color:#fff
